@@ -30,34 +30,45 @@ pub struct PortInfo {
 /// rather than propagating an error, so the frontend always gets a valid JSON
 /// array.
 pub fn list_ports() -> Vec<PortInfo> {
-    match serialport::available_ports() {
-        Ok(ports) => ports.into_iter().map(|p| {
-            let (vid, pid, manufacturer, product, serial_number) =
-                if let serialport::SerialPortType::UsbPort(ref info) = p.port_type {
-                    (
-                        Some(format!("{:04x}", info.vid)),
-                        Some(format!("{:04x}", info.pid)),
-                        info.manufacturer.clone(),
-                        info.product.clone(),
-                        info.serial_number.clone(),
-                    )
-                } else {
-                    (None, None, None, None, None)
-                };
-            PortInfo {
-                port_name: p.port_name,
-                vid,
-                pid,
-                manufacturer,
-                product,
-                serial_number,
-            }
-        }).collect(),
-        Err(e) => {
-            log::warn!("Failed to enumerate serial ports: {}", e);
-            Vec::new()
+    log::debug!("[serial] Enumerating serial ports via serialport crate …");
+    let raw = serialport::available_ports().unwrap_or_else(|e| {
+        log::warn!("[serial] serialport::available_ports() failed: {}", e);
+        Vec::new()
+    });
+    log::info!("[serial] Raw port count from OS: {}", raw.len());
+
+    let result: Vec<PortInfo> = raw.into_iter().map(|p| {
+        let (vid, pid, manufacturer, product, serial_number) =
+            if let serialport::SerialPortType::UsbPort(ref info) = p.port_type {
+                (
+                    Some(format!("{:04x}", info.vid)),
+                    Some(format!("{:04x}", info.pid)),
+                    info.manufacturer.clone(),
+                    info.product.clone(),
+                    info.serial_number.clone(),
+                )
+            } else {
+                (None, None, None, None, None)
+            };
+        log::info!(
+            "[serial]   port={} vid={:?} pid={:?} product={:?}",
+            p.port_name,
+            vid,
+            pid,
+            product,
+        );
+        PortInfo {
+            port_name: p.port_name,
+            vid,
+            pid,
+            manufacturer,
+            product,
+            serial_number,
         }
-    }
+    }).collect();
+
+    log::info!("[serial] Returning {} port(s) to frontend", result.len());
+    result
 }
 
 /// A simple ring-buffer wrapper for accumulating bytes read from a serial
