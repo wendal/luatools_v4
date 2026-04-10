@@ -9,6 +9,10 @@ license = "MIT"
 name = "luatools_v4"
 path = "src/main.rs"
 
+[[bin]]
+name = "bk-cli"
+path = "src/bin/bk_cli.rs"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -21,6 +25,11 @@ tokio = { version = "1", features = ["full"] }
 anyhow = "1"
 log = "0.4"
 env_logger = "0.11"
+zip = "2"
+rfd = "0.15"
+tempfile = "3"
+chrono = { version = "0.4", features = ["clock"] }
+crc32fast = "1"
 
 [profile.release]
 opt-level = "s"   # optimize for binary size
