@@ -76,17 +76,40 @@ Any error message printed there points directly to the IPC or permission layer.
 
 ### 3 — Verify the OS sees the port
 
-Run the `serialport` crate's own example directly to confirm whether the problem
-is in hardware / drivers or in the application:
+Run the `serialport` crate's own standalone example directly to confirm whether
+the problem is in hardware / drivers or in the application.
+
+Create a temporary test file and run it:
 
 ```bash
-# In the src-tauri directory
-cargo run --example list_ports
+# From the repo root — no changes to Cargo.toml required
+cargo new --bin /tmp/list_ports_test
 ```
 
-> **Note**: the example must be added to `Cargo.toml` first — see the
-> [serialport documentation](https://docs.rs/serialport/latest/serialport/).
-> Alternatively, use the `serial-monitor` tool:
+Put the following content in `/tmp/list_ports_test/src/main.rs`:
+
+```rust
+fn main() {
+    match serialport::available_ports() {
+        Ok(ports) => {
+            println!("Found {} port(s):", ports.len());
+            for p in &ports {
+                println!("  {:?}", p);
+            }
+        }
+        Err(e) => eprintln!("Error: {}", e),
+    }
+}
+```
+
+Add `serialport = "4"` to `/tmp/list_ports_test/Cargo.toml` under
+`[dependencies]`, then run:
+
+```bash
+cargo run --manifest-path /tmp/list_ports_test/Cargo.toml
+```
+
+Alternatively, install the ready-made `serial-monitor` tool:
 
 ```bash
 cargo install serial-monitor
