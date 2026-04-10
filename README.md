@@ -10,6 +10,10 @@ EC618 / EC718 (Air780E / Air780EP) and Beken-based modules.
 - EC618 / EC718 flasher backend (Rust, work-in-progress)
 - Beken (BK) flasher backend (Rust, work-in-progress)
 
+## Documentation
+
+- 📐 [架构设计文档 / Architecture (中文)](docs/ARCHITECTURE.zh-CN.md) — 设计纲要、关键决策、技术栈分层、重构计划
+
 ## Getting Started
 
 ### Prerequisites
