@@ -1,11 +1,12 @@
 // serial/mod.rs
-// Serial port scanning and basic buffer management helpers.
 #![allow(dead_code)]
-//
-// Used by the Tauri `get_serial_ports` command and by the flasher
-// implementations that need a raw serial handle.
+
+pub mod log;
 
 use serde::{Deserialize, Serialize};
+
+// Re-export log macros via absolute path to avoid shadowing by the `log` submodule.
+use ::log::{debug, info, warn};
 
 /// Metadata about a serial port visible on the host system.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,12 +31,12 @@ pub struct PortInfo {
 /// rather than propagating an error, so the frontend always gets a valid JSON
 /// array.
 pub fn list_ports() -> Vec<PortInfo> {
-    log::debug!("[serial] Enumerating serial ports via serialport crate …");
+    debug!("[serial] Enumerating serial ports via serialport crate …");
     let raw = serialport::available_ports().unwrap_or_else(|e| {
-        log::warn!("[serial] serialport::available_ports() failed: {}", e);
+        warn!("[serial] serialport::available_ports() failed: {}", e);
         Vec::new()
     });
-    log::info!("[serial] Raw port count from OS: {}", raw.len());
+    info!("[serial] Raw port count from OS: {}", raw.len());
 
     let result: Vec<PortInfo> = raw.into_iter().map(|p| {
         let (vid, pid, manufacturer, product, serial_number) =
@@ -50,24 +51,14 @@ pub fn list_ports() -> Vec<PortInfo> {
             } else {
                 (None, None, None, None, None)
             };
-        log::info!(
+        info!(
             "[serial]   port={} vid={:?} pid={:?} product={:?}",
-            p.port_name,
-            vid,
-            pid,
-            product,
+            p.port_name, vid, pid, product,
         );
-        PortInfo {
-            port_name: p.port_name,
-            vid,
-            pid,
-            manufacturer,
-            product,
-            serial_number,
-        }
+        PortInfo { port_name: p.port_name, vid, pid, manufacturer, product, serial_number }
     }).collect();
 
-    log::info!("[serial] Returning {} port(s) to frontend", result.len());
+    info!("[serial] Returning {} port(s) to frontend", result.len());
     result
 }
 
